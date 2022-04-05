@@ -1,90 +1,42 @@
-from re import T
+def attach(x, y, M, key, board):
+    for i in range(M):
+        for j in range(M):
+            board[x+i][y+j] += key[i][j]
 
+def detach(x, y, M, key, board):
+    for i in range(M):
+        for j in range(M):
+            board[x+i][y+j] -= key[i][j]
+
+def rotate90(arr):
+    return list(zip(*arr[::-1]))
+
+def check(board, M, N):
+    for i in range(N):
+        for j in range(N):
+            if board[M+i][M+j] != 1:
+                return False
+    return True
 
 def solution(key, lock):
-    import numpy as np
-    a = np.array(key)
-    wanted = np.array([[abs(j-1) for j in i]for i in lock])
-    key_arr = [a,np.rot90(a,1),np.rot90(a,2),np.rot90(a,3)]
+    M, N = len(key), len(lock)
 
-    answer = [False]
+    board = [[0] * (M*2 + N) for _ in range(M*2 + N)]
+    for i in range(N):
+        for j in range(N):
+            board[M+i][M+j] = lock[i][j]
 
-    def set_answer(answer):
-        answer.append(True)
-
-    def moveTR(keyvalue, lockvalue,answer):
-        if keyvalue.sum() >= lockvalue.sum():
-            if np.array_equal(keyvalue ,lockvalue):
-                set_answer(answer)
-                return True
-            else:
-                # move top
-                key = keyvalue[1:]
-                key = np.append(key,[np.array([0]*len(keyvalue))],axis=0)
-                moveTR(key,lockvalue,answer)
-                # move right
-                v = np.delete(keyvalue,0,axis=1)
-                key = np.append(v, [[0]]*len(keyvalue), axis = 1)
-                moveTR(key,lockvalue,answer)
-        else: return False
-
-    def moveTL(keyvalue, lockvalue,answer):
-        if keyvalue.sum() >= lockvalue.sum():
-            if np.array_equal(keyvalue ,lockvalue):
-                set_answer(answer)
-                return True
-            else:
-                # move top
-                key = keyvalue[1:]
-                key = np.append(key,[np.array([0]*len(keyvalue))],axis=0)
-                moveTL(key,lockvalue,answer)
-                # move left
-                v = np.delete(keyvalue,-1,axis=1)
-                key = np.append([[0]]*len(keyvalue),v, axis = 1)
-                moveTL(key,lockvalue,answer)
-        else: return False
-
-    def moveBR(keyvalue, lockvalue,answer):
-        if keyvalue.sum() >= lockvalue.sum():
-            if np.array_equal(keyvalue ,lockvalue):
-                set_answer(answer)
-                return True
-            else:
-                # move bot
-                key = keyvalue[:-1]
-                key = np.append([np.array([0]*len(keyvalue))],key,axis=0)
-                moveBR(key,lockvalue,answer)
-                # move right
-                v = np.delete(keyvalue,0,axis=1)
-                key = np.append(v, [[0]]*len(keyvalue), axis = 1)
-                moveBR(key,lockvalue,answer)
-        else: return False
-
-    def moveBL(keyvalue, lockvalue,answer):
-        if keyvalue.sum() >= lockvalue.sum():
-            if np.array_equal(keyvalue ,lockvalue):
-                set_answer(answer)
-                return True
-            else:
-                # move bot
-                key = keyvalue[:-1]
-                key = np.append([np.array([0]*len(keyvalue))],key,axis=0)
-                moveBL(key,lockvalue,answer)
-                # move left
-                v = np.delete(keyvalue,-1,axis=1)
-                key = np.append([[0]]*len(keyvalue),v, axis = 1)
-                moveBL(key,lockvalue,answer)
-        else: return False
-    
-    
-
-    for i in range(len(key_arr)):
-        moveTR(key_arr[i],wanted,answer)
-        moveTL(key_arr[i],wanted,answer)
-        moveBR(key_arr[i],wanted,answer)
-        moveBL(key_arr[i],wanted,answer)
-
-    return answer[-1]
+    rotated_key = key
+    for _ in range(4):
+        rotated_key = rotate90(rotated_key)
+        for x in range(1, M+N):
+            for y in range(1, M+N):
+                attach(x, y, M, rotated_key, board)
+                if(check(board, M, N)):
+                    return True
+                detach(x, y, M, rotated_key, board)
+                
+    return False
 
 print(solution(
     [[0, 0, 0], 
